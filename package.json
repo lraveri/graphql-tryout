@@ -11,12 +11,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@prisma/client": "^5.18.0",
     "@types/node": "^22.1.0",
     "apollo-server": "^3.13.0",
     "graphql": "^16.9.0",
     "typescript": "^5.5.4"
   },
   "devDependencies": {
+    "prisma": "^5.18.0",
     "ts-node": "^10.9.2"
   }
 }
