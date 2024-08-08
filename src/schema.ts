@@ -1,4 +1,4 @@
-import {intArg, makeSchema, nonNull, objectType} from 'nexus';
+import { intArg, makeSchema, nonNull, objectType, stringArg, floatArg } from 'nexus';
 import { Customer, Order, Product, ProductVariant } from 'nexus-prisma';
 import { join } from 'path';
 
@@ -98,8 +98,108 @@ const Query = objectType({
     },
 });
 
+const Mutation = objectType({
+    name: 'Mutation',
+    definition(t) {
+        // Create Customer
+        t.field('createCustomer', {
+            type: 'Customer',
+            args: {
+                name: nonNull(stringArg()),
+                email: nonNull(stringArg()),
+            },
+            resolve(_, { name, email }, ctx) {
+                return ctx.prisma.customer.create({
+                    data: { name, email },
+                });
+            },
+        });
+
+        // Update Customer
+        t.field('updateCustomer', {
+            type: 'Customer',
+            args: {
+                id: nonNull(intArg()),
+                name: stringArg(),
+                email: stringArg(),
+            },
+            resolve(_, { id, name, email }, ctx) {
+                return ctx.prisma.customer.update({
+                    where: { id },
+                    data: { name, email },
+                });
+            },
+        });
+
+        // Delete Customer
+        t.field('deleteCustomer', {
+            type: 'Customer',
+            args: {
+                id: nonNull(intArg()),
+            },
+            resolve(_, { id }, ctx) {
+                return ctx.prisma.customer.delete({
+                    where: { id },
+                });
+            },
+        });
+
+        // Similarly, you can add mutations for Order, Product, and ProductVariant
+        // Create Order
+        t.field('createOrder', {
+            type: 'Order',
+            args: {
+                total: nonNull(floatArg()),
+                customerId: nonNull(intArg()),
+            },
+            resolve(_, { total, customerId }, ctx) {
+                return ctx.prisma.order.create({
+                    data: {
+                        total,
+                        customer: { connect: { id: customerId } },
+                    },
+                });
+            },
+        });
+
+        // Update Order
+        t.field('updateOrder', {
+            type: 'Order',
+            args: {
+                id: nonNull(intArg()),
+                total: floatArg(),
+                customerId: intArg(),
+            },
+            resolve(_, { id, total, customerId }, ctx) {
+                return ctx.prisma.order.update({
+                    where: { id },
+                    data: {
+                        total,
+                        customer: customerId ? { connect: { id: customerId } } : undefined
+                    },
+                });
+            },
+        });
+
+        // Delete Order
+        t.field('deleteOrder', {
+            type: 'Order',
+            args: {
+                id: nonNull(intArg()),
+            },
+            resolve(_, { id }, ctx) {
+                return ctx.prisma.order.delete({
+                    where: { id },
+                });
+            },
+        });
+
+        // Add similar create, update, and delete mutations for Product and ProductVariant as needed
+    },
+});
+
 export const schema = makeSchema({
-    types: [Query, CustomerType, OrderType, ProductType, ProductVariantType],
+    types: [Query, Mutation, CustomerType, OrderType, ProductType, ProductVariantType],
     outputs: {
         typegen: join(__dirname, '..', 'nexus-typegen.ts'),
         schema: join(__dirname, '..', 'schema.graphql'),
