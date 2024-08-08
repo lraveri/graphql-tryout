@@ -1,49 +1,62 @@
-import customersData from './data/customers.json';
-import ordersData from './data/orders.json';
-import productsData from './data/products.json';
-
-interface Customer {
-    id: number;
-    name: string;
-    email: string;
-    orders: number[];
-}
-
-interface Order {
-    id: number;
-    total: number;
-    customerId: number;
-    products: number[];
-}
-
-interface Product {
-    id: number;
-    title: string;
-    description: string;
-    variants: any[];
-}
-
-const customers: Customer[] = customersData;
-const orders: Order[] = ordersData;
-const products: Product[] = productsData;
+import { Context } from './context';
 
 export const resolvers = {
     Query: {
-        customers: () => customers,
-        customer: (_: any, { id }: { id: number }) => customers.find(customer => customer.id === id),
-        orders: () => orders,
-        order: (_: any, { id }: { id: number }) => orders.find(order => order.id === id),
-        products: () => products,
-        product: (_: any, { id }: { id: number }) => products.find(product => product.id === id),
+        customers: async (_: any, __: any, { prisma }: Context) => {
+            return prisma.customer.findMany();
+        },
+        customer: async (_: any, { id }: { id: number }, { prisma }: Context) => {
+            return prisma.customer.findUnique({
+                where: { id },
+            });
+        },
+        orders: async (_: any, __: any, { prisma }: Context) => {
+            return prisma.order.findMany();
+        },
+        order: async (_: any, { id }: { id: number }, { prisma }: Context) => {
+            return prisma.order.findUnique({
+                where: { id },
+            });
+        },
+        products: async (_: any, __: any, { prisma }: Context) => {
+            return prisma.product.findMany();
+        },
+        product: async (_: any, { id }: { id: number }, { prisma }: Context) => {
+            return prisma.product.findUnique({
+                where: { id },
+            });
+        },
     },
     Customer: {
-        orders: (parent: any) => orders.filter(order => parent.orders.includes(order.id)),
+        orders: async (parent: any, __: any, { prisma }: Context) => {
+            return prisma.order.findMany({
+                where: { customerId: parent.id },
+            });
+        },
     },
     Order: {
-        customer: (parent: any) => customers.find(customer => customer.id === parent.customerId),
-        products: (parent: any) => products.filter(product => parent.products.includes(product.id)),
+        customer: async (parent: any, __: any, { prisma }: Context) => {
+            return prisma.customer.findUnique({
+                where: { id: parent.customerId },
+            });
+        },
+        products: async (parent: any, __: any, { prisma }: Context) => {
+            return prisma.product.findMany({
+                where: {
+                    orders: {
+                        some: {
+                            id: parent.id,
+                        },
+                    },
+                },
+            });
+        },
     },
     Product: {
-        variants: (parent: any) => parent.variants,
+        variants: async (parent: any, __: any, { prisma }: Context) => {
+            return prisma.productVariant.findMany({
+                where: { productId: parent.id },
+            });
+        },
     },
 };
