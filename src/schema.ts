@@ -36,4 +36,22 @@ export const typeDefs = gql`
     products: [Product]
     product(id: Int!): Product
   }
+
+  type Mutation {
+    createCustomer(name: String!, email: String!): Customer
+    updateCustomer(id: Int!, name: String, email: String): Customer
+    deleteCustomer(id: Int!): Customer
+
+    createOrder(total: Float!, customerId: Int!): Order
+    updateOrder(id: Int!, total: Float, customerId: Int): Order
+    deleteOrder(id: Int!): Order
+
+    createProduct(title: String!, description: String!): Product
+    updateProduct(id: Int!, title: String, description: String): Product
+    deleteProduct(id: Int!): Product
+
+    createProductVariant(productId: Int!, title: String!, price: Float!): ProductVariant
+    updateProductVariant(id: Int!, title: String, price: Float): ProductVariant
+    deleteProductVariant(id: Int!): ProductVariant
+  }
 `;
