@@ -1,4 +1,5 @@
 import { Context } from './context';
+import {UserInputError} from "apollo-server";
 
 export const resolvers = {
     Query: {
@@ -6,9 +7,17 @@ export const resolvers = {
             return prisma.customer.findMany();
         },
         customer: async (_: any, { id }: { id: number }, { prisma }: Context) => {
-            return prisma.customer.findUnique({
+            const customer = await prisma.customer.findUnique({
                 where: { id },
             });
+
+            if (!customer) {
+                throw new UserInputError(`Customer with ID ${id} not found`, {
+                    invalidArgs: { id },
+                });
+            }
+
+            return customer;
         },
         orders: async (_: any, __: any, { prisma }: Context) => {
             return prisma.order.findMany();
